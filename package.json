@@ -1,0 +1,28 @@
+{
+	"name": "createepee",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-auto": "^3.0.0",
+		"@sveltejs/kit": "^2.0.0",
+		"@sveltejs/vite-plugin-svelte": "^3.0.0",
+		"@tailwindcss/forms": "^0.5.10",
+		"autoprefixer": "^10.4.22",
+		"postcss": "^8.5.6",
+		"svelte": "^4.0.0",
+		"tailwindcss": "^3.4.18",
+		"vite": "^5.0.0"
+	},
+	"dependencies": {
+		"@ffmpeg-installer/ffmpeg": "^1.1.0",
+		"fabric": "^5.3.0",
+		"fluent-ffmpeg": "^2.1.2"
+	}
+}
