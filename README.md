@@ -50,36 +50,7 @@ A comprehensive web-based editing suite built with SvelteKit. Edit images, video
 - **Video Processing**: FFmpeg (via fluent-ffmpeg)
 - **Backend**: SvelteKit API routes
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ (Note: Some features may require Node 20+)
-- FFmpeg installed on your system (for video processing)
-
-### Installation
-
-1. Install dependencies:
-```bash
-npm install
-```
-
-2. Start the development server:
-```bash
-npm run dev
-```
-
-3. Open your browser to `http://localhost:5173`
-
-### Building for Production
-
-```bash
-npm run build
-npm run preview
-```
-
 ## Project Structure
-
 ```
 src/
 ├── lib/
