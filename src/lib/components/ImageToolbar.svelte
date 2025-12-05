@@ -1,46 +1,88 @@
 <script>
-	import { activeTool, showExportModal, canvasInstance } from '$lib/stores/editorStore.js';
+	import { activeTool, showExportModal, canvasInstance, leftPanelCollapsed } from '$lib/stores/editorStore.js';
 	
-	const tools = [
-		{ id: 'select', label: 'Select', icon: '↖' },
-		{ id: 'text', label: 'Text', icon: 'T' },
-		{ id: 'rectangle', label: 'Rectangle', icon: '▭' },
-		{ id: 'circle', label: 'Circle', icon: '○' },
-		{ id: 'ellipse', label: 'Ellipse', icon: '◯' },
-		{ id: 'line', label: 'Line', icon: '─' },
-		{ id: 'freedraw', label: 'Draw', icon: '✎' }
+	/**
+	 * ImageToolbar Component (Left Sidebar)
+	 * 
+	 * Professional tool palette organized into groups, similar to Photoshop/Affinity.
+	 * Tools are grouped by functionality:
+	 * - Selection tools
+	 * - Drawing tools
+	 * - Shape tools
+	 * - Text tool
+	 * - Brush tools
+	 * - Special tools (gradient, etc.)
+	 */
+	
+	// Tool groups for organized display
+	const toolGroups = [
+		{
+			name: 'Selection',
+			tools: [
+				{ id: 'select', label: 'Select', icon: '↖', shortcut: 'V' },
+				{ id: 'lasso', label: 'Lasso', icon: '✂', shortcut: 'L' },
+				{ id: 'magicwand', label: 'Magic Wand', icon: '✨', shortcut: 'W' }
+			]
+		},
+		{
+			name: 'Drawing',
+			tools: [
+				{ id: 'freedraw', label: 'Brush', icon: '✎', shortcut: 'B' },
+				{ id: 'line', label: 'Line', icon: '─', shortcut: 'L' }
+			]
+		},
+		{
+			name: 'Shapes',
+			tools: [
+				{ id: 'rectangle', label: 'Rectangle', icon: '▭', shortcut: 'R' },
+				{ id: 'circle', label: 'Circle', icon: '○', shortcut: 'C' },
+				{ id: 'ellipse', label: 'Ellipse', icon: '◯', shortcut: 'E' }
+			]
+		},
+		{
+			name: 'Special',
+			tools: [
+				{ id: 'text', label: 'Text', icon: 'T', shortcut: 'T' },
+				{ id: 'gradient', label: 'Gradient', icon: '▱', shortcut: 'G' }
+			]
+		}
 	];
 	
-	let strokeColor = '#000000';
-	let fillColor = '#ffffff';
-	let strokeWidth = 2;
-	let textSize = 20;
-	let textColor = '#000000';
-	let showColorPicker = false;
-	
-	let showLayers = false;
+	// Filter controls
 	let showFilters = false;
 	let brightness = 0;
 	let contrast = 0;
 	let saturation = 0;
 	let blur = 0;
 	
+	/**
+	 * Select a tool
+	 * @param {string} toolId - The ID of the tool to select
+	 */
 	function selectTool(toolId) {
 		activeTool.set($activeTool === toolId ? null : toolId);
 	}
 	
+	/**
+	 * Toggle filters panel
+	 */
 	function toggleFilters() {
 		showFilters = !showFilters;
 	}
 	
+	/**
+	 * Apply filters to selected object or all objects
+	 */
 	function applyFilters() {
-		// Dispatch custom event to ImageEditor
 		const event = new CustomEvent('applyFilters', {
 			detail: { brightness, contrast, saturation, blur }
 		});
 		window.dispatchEvent(event);
 	}
 	
+	/**
+	 * Reset all filters to default values
+	 */
 	function resetFilters() {
 		brightness = 0;
 		contrast = 0;
@@ -49,242 +91,209 @@
 		applyFilters();
 	}
 	
+	/**
+	 * Open export modal
+	 */
 	function openExport() {
 		showExportModal.set(true);
 	}
 	
-	function toggleLayers() {
-		showLayers = !showLayers;
-	}
-	
-	function deleteSelected() {
-		if ($canvasInstance) {
-			const activeObject = $canvasInstance.getActiveObject();
-			if (activeObject) {
-				$canvasInstance.remove(activeObject);
-				$canvasInstance.renderAll();
-			}
-		}
-	}
-	
-	function bringToFront() {
-		if ($canvasInstance) {
-			const activeObject = $canvasInstance.getActiveObject();
-			if (activeObject) {
-				$canvasInstance.bringToFront(activeObject);
-				$canvasInstance.renderAll();
-			}
-		}
-	}
-	
-	function sendToBack() {
-		if ($canvasInstance) {
-			const activeObject = $canvasInstance.getActiveObject();
-			if (activeObject) {
-				$canvasInstance.sendToBack(activeObject);
-				$canvasInstance.renderAll();
-			}
-		}
-	}
-
+	/**
+	 * Undo last action
+	 */
 	function undo() {
 		const event = new CustomEvent('undo');
 		window.dispatchEvent(event);
 	}
-
+	
+	/**
+	 * Redo last undone action
+	 */
 	function redo() {
 		const event = new CustomEvent('redo');
 		window.dispatchEvent(event);
 	}
-
-	function updateSelectedObject() {
-		if (!$canvasInstance) return;
-		const activeObject = $canvasInstance.getActiveObject();
-		if (activeObject) {
-			if (activeObject.type !== 'textbox' && activeObject.type !== 'text') {
-				activeObject.set({
-					stroke: strokeColor,
-					fill: fillColor === '#ffffff' && activeObject.type !== 'rect' && activeObject.type !== 'circle' && activeObject.type !== 'ellipse' ? 'transparent' : fillColor,
-					strokeWidth: strokeWidth
-				});
-			} else {
-				activeObject.set({
-					fill: textColor,
-					fontSize: textSize
-				});
-			}
-			$canvasInstance.renderAll();
-		}
-	}
-
-	function toggleColorPicker() {
-		showColorPicker = !showColorPicker;
+	
+	/**
+	 * Toggle left panel collapse state
+	 */
+	function toggleCollapse() {
+		leftPanelCollapsed.set(!$leftPanelCollapsed);
 	}
 </script>
 
-<div class="bg-[#2a2a2a] border-b border-[#3a3a3a] p-4 flex gap-8 items-center">
-	<div class="flex items-center gap-4">
-		<h3 class="m-0 text-sm text-[#aaa] font-medium">Tools</h3>
-		<div class="flex gap-2">
-			{#each tools as tool}
-				<button 
-					class="flex flex-col items-center gap-1 px-4 py-2 bg-[#3a3a3a] border border-[#4a4a4a] rounded-md text-white cursor-pointer transition-all duration-200 text-sm hover:bg-[#4a4a4a] {$activeTool === tool.id ? 'bg-[#4a90e2] border-[#4a90e2]' : ''}"
-					on:click={() => selectTool(tool.id)}
-				>
-					<span class="text-xl font-bold">{tool.icon}</span>
-					<span class="text-xs">{tool.label}</span>
-				</button>
+<!-- Left Toolbar Sidebar -->
+<div class="bg-[#2a2a2a] border-r border-[#3a3a3a] {$leftPanelCollapsed ? 'w-12' : 'w-64'} flex flex-col h-full transition-all duration-200">
+	<!-- Collapse/Expand Button -->
+	<button
+		class="p-2 border-b border-[#3a3a3a] text-white hover:bg-[#3a3a3a] transition-colors"
+		on:click={toggleCollapse}
+		title={$leftPanelCollapsed ? 'Expand panel' : 'Collapse panel'}
+	>
+		{$leftPanelCollapsed ? '→' : '←'}
+	</button>
+	
+	{#if !$leftPanelCollapsed}
+		<!-- Tool Groups -->
+		<div class="flex-1 overflow-y-auto p-2">
+			{#each toolGroups as group}
+				<div class="mb-4">
+					<h4 class="text-xs font-semibold text-[#aaa] mb-2 px-2 uppercase">{group.name}</h4>
+					<div class="flex flex-col gap-1">
+						{#each group.tools as tool}
+							<button
+								class="flex items-center gap-2 px-3 py-2 bg-[#3a3a3a] border border-[#4a4a4a] rounded text-white cursor-pointer transition-all duration-200 text-sm hover:bg-[#4a4a4a] {$activeTool === tool.id ? 'bg-[#4a90e2] border-[#4a90e2]' : ''}"
+								on:click={() => selectTool(tool.id)}
+								title="{tool.label} ({tool.shortcut})"
+							>
+								<span class="text-lg font-bold w-6 text-center">{tool.icon}</span>
+								<span class="flex-1 text-left">{tool.label}</span>
+								<span class="text-xs text-[#666]">{tool.shortcut}</span>
+							</button>
+						{/each}
+					</div>
+				</div>
 			{/each}
 		</div>
-	</div>
-	<div class="flex items-center gap-4 relative">
-		<button class="px-6 py-3 bg-[#3a3a3a] border border-[#4a4a4a] rounded-md text-white font-medium cursor-pointer transition-all duration-200 hover:bg-[#4a4a4a] {showLayers ? 'bg-[#4a90e2] border-[#4a90e2]' : ''}" on:click={toggleLayers}>
-			Layers
-		</button>
-		<button class="px-6 py-3 bg-[#3a3a3a] border border-[#4a4a4a] rounded-md text-white font-medium cursor-pointer transition-all duration-200 hover:bg-[#4a4a4a] {showFilters ? 'bg-[#4a90e2] border-[#4a90e2]' : ''}" on:click={toggleFilters}>
-			Filters
-		</button>
+		
+		<!-- Action Buttons -->
+		<div class="border-t border-[#3a3a3a] p-2 space-y-2">
+			<!-- Undo/Redo -->
+			<div class="flex gap-1">
+				<button
+					class="flex-1 px-3 py-2 bg-[#3a3a3a] border border-[#4a4a4a] rounded text-white text-xs cursor-pointer hover:bg-[#4a4a4a] transition-colors"
+					on:click={undo}
+					title="Undo (Ctrl+Z)"
+				>
+					↶ Undo
+				</button>
+				<button
+					class="flex-1 px-3 py-2 bg-[#3a3a3a] border border-[#4a4a4a] rounded text-white text-xs cursor-pointer hover:bg-[#4a4a4a] transition-colors"
+					on:click={redo}
+					title="Redo (Ctrl+Shift+Z)"
+				>
+					↷ Redo
+				</button>
+			</div>
+			
+			<!-- Filters Toggle -->
+			<button
+				class="w-full px-3 py-2 bg-[#3a3a3a] border border-[#4a4a4a] rounded text-white text-xs cursor-pointer hover:bg-[#4a4a4a] transition-colors {showFilters ? 'bg-[#4a90e2] border-[#4a90e2]' : ''}"
+				on:click={toggleFilters}
+			>
+				Filters
+			</button>
+			
+			<!-- Export Button -->
+			<button
+				class="w-full px-3 py-2 bg-[#4a90e2] border-none rounded text-white font-semibold text-xs cursor-pointer hover:bg-[#5aa0f2] transition-colors"
+				on:click={openExport}
+			>
+				Export
+			</button>
+		</div>
+		
+		<!-- Filters Panel (Collapsible) -->
 		{#if showFilters}
-			<div class="absolute top-full left-[200px] mt-2 bg-[#2a2a2a] border border-[#3a3a3a] rounded-md min-w-[250px] z-[1000]">
-				<div class="p-3 border-b border-[#3a3a3a] font-semibold">Filters</div>
-				<div class="p-4 flex flex-col gap-4">
-					<div class="flex flex-col gap-2">
-						<label for="brightness" class="text-sm text-[#aaa]">Brightness: {brightness}</label>
-						<input 
+			<div class="border-t border-[#3a3a3a] p-3 bg-[#1f1f1f] max-h-64 overflow-y-auto">
+				<h4 class="text-xs font-semibold text-[#aaa] mb-3 uppercase">Image Filters</h4>
+				<div class="flex flex-col gap-3">
+					<div class="flex flex-col gap-1">
+						<label for="brightness" class="text-xs text-[#aaa]">Brightness: {brightness}</label>
+						<input
 							id="brightness"
-							type="range" 
-							min="-100" 
-							max="100" 
+							type="range"
+							min="-100"
+							max="100"
 							bind:value={brightness}
 							on:input={applyFilters}
 							class="w-full"
 						/>
 					</div>
-					<div class="flex flex-col gap-2">
-						<label for="contrast" class="text-sm text-[#aaa]">Contrast: {contrast}</label>
-						<input 
+					<div class="flex flex-col gap-1">
+						<label for="contrast" class="text-xs text-[#aaa]">Contrast: {contrast}</label>
+						<input
 							id="contrast"
-							type="range" 
-							min="-100" 
-							max="100" 
+							type="range"
+							min="-100"
+							max="100"
 							bind:value={contrast}
 							on:input={applyFilters}
 							class="w-full"
 						/>
 					</div>
-					<div class="flex flex-col gap-2">
-						<label for="saturation" class="text-sm text-[#aaa]">Saturation: {saturation}</label>
-						<input 
+					<div class="flex flex-col gap-1">
+						<label for="saturation" class="text-xs text-[#aaa]">Saturation: {saturation}</label>
+						<input
 							id="saturation"
-							type="range" 
-							min="-100" 
-							max="100" 
+							type="range"
+							min="-100"
+							max="100"
 							bind:value={saturation}
 							on:input={applyFilters}
 							class="w-full"
 						/>
 					</div>
-					<div class="flex flex-col gap-2">
-						<label for="blur" class="text-sm text-[#aaa]">Blur: {blur}</label>
-						<input 
+					<div class="flex flex-col gap-1">
+						<label for="blur" class="text-xs text-[#aaa]">Blur: {blur}</label>
+						<input
 							id="blur"
-							type="range" 
-							min="0" 
-							max="50" 
+							type="range"
+							min="0"
+							max="50"
 							bind:value={blur}
 							on:input={applyFilters}
 							class="w-full"
 						/>
 					</div>
-				</div>
-				<div class="p-3 border-t border-[#3a3a3a]">
-					<button class="w-full py-2 bg-[#3a3a3a] border border-[#4a4a4a] rounded text-white cursor-pointer text-sm hover:bg-[#4a4a4a]" on:click={resetFilters}>Reset</button>
+					<button
+						class="mt-2 px-3 py-1.5 bg-[#3a3a3a] border border-[#4a4a4a] rounded text-white text-xs cursor-pointer hover:bg-[#4a4a4a] transition-colors"
+						on:click={resetFilters}
+					>
+						Reset Filters
+					</button>
 				</div>
 			</div>
 		{/if}
-		{#if showLayers && $canvasInstance}
-			<div class="absolute top-full left-0 mt-2 bg-[#2a2a2a] border border-[#3a3a3a] rounded-md min-w-[200px] max-h-[400px] z-[1000]">
-				<div class="p-3 border-b border-[#3a3a3a] font-semibold">Layers</div>
-				<div class="max-h-[200px] overflow-y-auto">
-					{#each $canvasInstance.getObjects().slice().reverse() as obj, i}
-						<div 
-							role="button"
-							tabindex="0"
-							class="flex justify-between items-center px-3 py-2 cursor-pointer transition-colors duration-200 {$canvasInstance.getActiveObject() === obj ? 'bg-[#4a90e2]' : 'hover:bg-[#3a3a3a]'}"
-							on:click={() => $canvasInstance.setActiveObject(obj)}
-							on:keydown={(e) => {
-								if (e.key === 'Enter' || e.key === ' ') {
-									e.preventDefault();
-									$canvasInstance.setActiveObject(obj);
-								}
-							}}
+	{:else}
+		<!-- Collapsed View - Icon Only -->
+		<div class="flex-1 overflow-y-auto p-2">
+			{#each toolGroups as group}
+				<div class="mb-3">
+					{#each group.tools as tool}
+						<button
+							class="w-full p-2 mb-1 bg-[#3a3a3a] border border-[#4a4a4a] rounded text-white cursor-pointer transition-all duration-200 hover:bg-[#4a4a4a] {$activeTool === tool.id ? 'bg-[#4a90e2] border-[#4a90e2]' : ''}"
+							on:click={() => selectTool(tool.id)}
+							title="{tool.label} ({tool.shortcut})"
 						>
-							<span>Layer {i + 1}</span>
-							<button 
-								class="bg-transparent border-none text-[#ff4444] cursor-pointer text-xl px-2 hover:text-[#ff6666]"
-								on:click|stopPropagation={() => {
-									$canvasInstance.remove(obj);
-									$canvasInstance.renderAll();
-								}}
-							>×</button>
-						</div>
+							<span class="text-lg">{tool.icon}</span>
+						</button>
 					{/each}
 				</div>
-				<div class="p-3 border-t border-[#3a3a3a] flex flex-col gap-2">
-					<button class="py-2 bg-[#3a3a3a] border border-[#4a4a4a] rounded text-white cursor-pointer text-sm hover:bg-[#4a4a4a]" on:click={bringToFront}>Bring to Front</button>
-					<button class="py-2 bg-[#3a3a3a] border border-[#4a4a4a] rounded text-white cursor-pointer text-sm hover:bg-[#4a4a4a]" on:click={sendToBack}>Send to Back</button>
-					<button class="py-2 bg-[#3a3a3a] border border-[#4a4a4a] rounded text-white cursor-pointer text-sm hover:bg-[#4a4a4a]" on:click={deleteSelected}>Delete Selected</button>
-				</div>
-			</div>
-		{/if}
-	</div>
-	<div class="flex items-center gap-4">
-		<button class="px-4 py-3 bg-[#3a3a3a] border border-[#4a4a4a] rounded-md text-white font-medium cursor-pointer transition-all duration-200 text-sm hover:bg-[#4a4a4a]" on:click={undo} title="Undo (Ctrl+Z)">
-			↶ Undo
-		</button>
-		<button class="px-4 py-3 bg-[#3a3a3a] border border-[#4a4a4a] rounded-md text-white font-medium cursor-pointer transition-all duration-200 text-sm hover:bg-[#4a4a4a]" on:click={redo} title="Redo (Ctrl+Shift+Z)">
-			↷ Redo
-		</button>
-	</div>
-	
-	<div class="flex items-center gap-4 relative">
-		<button class="px-4 py-3 border-2 border-[#4a4a4a] rounded-md text-white font-medium cursor-pointer transition-all duration-200 text-sm min-w-[60px] hover:border-[#4a90e2]" style="background: {strokeColor};" on:click={toggleColorPicker}>
-			Stroke
-		</button>
-		<button class="px-4 py-3 border-2 border-[#4a4a4a] rounded-md text-white font-medium cursor-pointer transition-all duration-200 text-sm min-w-[60px] hover:border-[#4a90e2]" style="background: {fillColor};" on:click={toggleColorPicker}>
-			Fill
-		</button>
-		{#if showColorPicker}
-			<div class="absolute top-full right-0 mt-2 bg-[#2a2a2a] border border-[#3a3a3a] rounded-md min-w-[250px] p-4 z-[1000]">
-				<div class="flex flex-col gap-2 mb-4">
-					<label for="stroke-color" class="text-sm text-[#aaa]">Stroke Color:</label>
-					<input id="stroke-color" type="color" bind:value={strokeColor} on:input={updateSelectedObject} class="w-full h-10 border border-[#4a4a4a] rounded cursor-pointer" />
-				</div>
-				<div class="flex flex-col gap-2 mb-4">
-					<label for="fill-color" class="text-sm text-[#aaa]">Fill Color:</label>
-					<input id="fill-color" type="color" bind:value={fillColor} on:input={updateSelectedObject} class="w-full h-10 border border-[#4a4a4a] rounded cursor-pointer" />
-				</div>
-				<div class="flex flex-col gap-2 mb-4">
-					<label for="text-color" class="text-sm text-[#aaa]">Text Color:</label>
-					<input id="text-color" type="color" bind:value={textColor} on:input={updateSelectedObject} class="w-full h-10 border border-[#4a4a4a] rounded cursor-pointer" />
-				</div>
-				<div class="flex flex-col gap-2 mb-4">
-					<label for="stroke-width" class="text-sm text-[#aaa]">Stroke Width: {strokeWidth}</label>
-					<input id="stroke-width" type="range" min="1" max="20" bind:value={strokeWidth} on:input={updateSelectedObject} class="w-full" />
-				</div>
-				<div class="flex flex-col gap-2">
-					<label for="text-size" class="text-sm text-[#aaa]">Text Size: {textSize}</label>
-					<input id="text-size" type="range" min="10" max="100" bind:value={textSize} on:input={updateSelectedObject} class="w-full" />
-				</div>
-			</div>
-		{/if}
-	</div>
-	
-	<div class="flex items-center gap-4">
-		<button class="px-6 py-3 bg-[#4a90e2] border-none rounded-md text-white font-semibold cursor-pointer transition-all duration-200 hover:bg-[#5aa0f2]" on:click={openExport}>
-			Export
-		</button>
-	</div>
+			{/each}
+		</div>
+		<div class="border-t border-[#3a3a3a] p-2 space-y-1">
+			<button
+				class="w-full p-2 bg-[#3a3a3a] border border-[#4a4a4a] rounded text-white text-xs cursor-pointer hover:bg-[#4a4a4a]"
+				on:click={undo}
+				title="Undo"
+			>
+				↶
+			</button>
+			<button
+				class="w-full p-2 bg-[#3a3a3a] border border-[#4a4a4a] rounded text-white text-xs cursor-pointer hover:bg-[#4a4a4a]"
+				on:click={redo}
+				title="Redo"
+			>
+				↷
+			</button>
+			<button
+				class="w-full p-2 bg-[#4a90e2] border-none rounded text-white text-xs cursor-pointer hover:bg-[#5aa0f2]"
+				on:click={openExport}
+				title="Export"
+			>
+				↓
+			</button>
+		</div>
+	{/if}
 </div>
-
-
