@@ -1,32 +1,32 @@
-<script>
-	import { editorMode } from '$lib/stores/editorStore.js';
+<script lang="ts">
+	import { page } from '$app/stores';
 
-	function switchMode(mode) {
-		editorMode.set(mode);
-	}
-
-	const categories = [
-		{ id: 'image', label: 'Image Editor', icon: '🖼️' },
-		{ id: 'video', label: 'Video Editor', icon: '🎬' },
-		{ id: 'document', label: 'Document Tools', icon: '📄' },
-		{ id: 'converter', label: 'File Converters', icon: '🔄' }
+	const links = [
+		{ href: '/image', label: 'Image Editor' },
+		{ href: '/video', label: 'Video Editor' },
+		{ href: '/docs', label: 'Document Tools' },
+		{ href: '/convert', label: 'File Converters' }
 	];
 </script>
 
-<aside class="w-[250px] bg-[#2a2a2a] border-r border-[#3a3a3a] flex flex-col text-white">
-	<div class="p-6 border-b border-[#3a3a3a]">
-		<h1 class="m-0 text-2xl font-semibold">Editor Hub</h1>
+<aside class="w-full md:w-64 bg-[#222] border-r border-[#333] text-white flex-shrink-0">
+	<div class="p-5 border-b border-[#333]">
+		<h1 class="text-xl font-semibold">Createepee</h1>
+		<p class="text-xs text-[#9aa] mt-1">Creative tools, no signup</p>
 	</div>
-	<nav class="p-4 flex flex-col gap-2">
-		{#each categories as category}
-			<button 
-				class="flex items-center gap-3 p-4 bg-transparent border border-[#3a3a3a] rounded-lg text-white cursor-pointer transition-all duration-200 text-base hover:bg-[#3a3a3a] hover:border-[#4a4a4a] {$editorMode === category.id ? 'bg-[#4a90e2] border-[#4a90e2]' : ''}"
-				on:click={() => switchMode(category.id)}
+	<nav class="p-3 flex md:flex-col gap-2 md:gap-1 overflow-x-auto">
+		{#each links as link}
+			<a
+				href={link.href}
+				class="min-w-[150px] md:min-w-0 px-4 py-3 rounded-lg border border-transparent transition-all duration-200 text-sm md:text-base whitespace-nowrap"
+				class:font-semibold={$page.url.pathname === link.href}
+				class:bg-[#0f62fe]={$page.url.pathname === link.href}
+				class:border-[#0f62fe]={$page.url.pathname === link.href}
+				class:bg-[#2b2b2b]={$page.url.pathname !== link.href}
+				class:hover:bg-[#333]={$page.url.pathname !== link.href}
 			>
-				<span class="text-2xl">{category.icon}</span>
-				<span class="font-medium">{category.label}</span>
-			</button>
+				{link.label}
+			</a>
 		{/each}
 	</nav>
 </aside>
-

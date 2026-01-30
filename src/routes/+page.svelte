@@ -1,28 +1,15 @@
-<script>
-	import { editorMode } from '$lib/stores/editorStore.js';
-	import ImageEditor from '$lib/components/ImageEditor.svelte';
-	import VideoEditor from '$lib/components/VideoEditor.svelte';
-	import ExportModal from '$lib/components/ExportModal.svelte';
-</script>
-
-{#if $editorMode === 'image'}
-	<ImageEditor />
-{:else if $editorMode === 'video'}
-	<VideoEditor />
-{:else if $editorMode === 'document'}
-	<div class="flex items-center justify-center h-full bg-[#1a1a1a] text-white">
-		<div class="text-center">
-			<h2 class="text-2xl font-semibold mb-4">Document Tools</h2>
-			<p class="text-[#aaa]">Coming soon...</p>
+<div class="h-full text-white flex items-center justify-center p-8">
+	<div class="max-w-2xl text-center">
+		<h2 class="text-3xl font-semibold mb-4">Welcome to Createepee</h2>
+		<p class="text-[#aab] mb-8">
+			Choose an editor from the sidebar to start creating. Image editing runs entirely in your browser,
+			and video processing is handled on the server using FFmpeg.
+		</p>
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+			<a href="/image" class="p-5 rounded-xl bg-[#1e1e1e] border border-[#2c2c2c] hover:border-[#0f62fe] transition">Image Editor</a>
+			<a href="/video" class="p-5 rounded-xl bg-[#1e1e1e] border border-[#2c2c2c] hover:border-[#0f62fe] transition">Video Editor</a>
+			<a href="/docs" class="p-5 rounded-xl bg-[#1e1e1e] border border-[#2c2c2c] hover:border-[#0f62fe] transition">Document Tools</a>
+			<a href="/convert" class="p-5 rounded-xl bg-[#1e1e1e] border border-[#2c2c2c] hover:border-[#0f62fe] transition">File Converters</a>
 		</div>
 	</div>
-{:else if $editorMode === 'converter'}
-	<div class="flex items-center justify-center h-full bg-[#1a1a1a] text-white">
-		<div class="text-center">
-			<h2 class="text-2xl font-semibold mb-4">File Converters</h2>
-			<p class="text-[#aaa]">Coming soon...</p>
-		</div>
-	</div>
-{/if}
-
-<ExportModal />
+</div>
